@@ -18,7 +18,7 @@ export default function CreateRoom() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center  bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-300 dark:to-blue-400">
+    <div className="flex flex-col flex-grow items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-300 dark:to-blue-400">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">ルームを作成する</CardTitle>

@@ -16,7 +16,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className={inter.className}>{children}</body>
+      <body className="min-h-screen flex flex-col">
+        {children}
+        <footer className="w-full h-20 flex items-center justify-center border-t border-gray-200 dark:border-gray-800">
+        <p className="text-gray-500 dark:text-gray-300">
+          © {new Date().getFullYear()} Ignission G.K. All rights reserved.
+        </p>
+      </footer>
+      </body>
     </html>
   )
 }

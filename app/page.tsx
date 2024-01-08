@@ -6,7 +6,7 @@ initializeFirebaseApp();
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col flex-grow">
       <main className="flex flex-1 flex-col items-center justify-center py-20 md:py-32 lg:py-48 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-300 dark:to-blue-400">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
           プランニングポーカー
@@ -27,11 +27,7 @@ export default function Home() {
           </Link>
         </div>
       </main>
-      <footer className="w-full h-20 flex items-center justify-center border-t border-gray-200 dark:border-gray-800">
-        <p className="text-gray-500 dark:text-gray-300">
-          © {new Date().getFullYear()} Ignission G.K. All rights reserved.
-        </p>
-      </footer>
+
     </div>
   );
 }
