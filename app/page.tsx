@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { initializeFirebaseApp } from "@/lib/firebase/firebase";
+import Link from "next/link";
 
 initializeFirebaseApp();
 
@@ -14,12 +15,16 @@ export default function Home() {
           リアルタイムにプランニングポーカーができます。
         </p>
         <div className="flex flex-col md:flex-row gap-4">
-          <Button className="bg-white text-blue-500 px-6 py-2 rounded-md hover:bg-blue-500 hover:text-white dark:bg-gray-800 dark:text-blue-300 dark:hover:bg-blue-300 dark:hover:text-gray-800">
-            作成する
-          </Button>
-          <Button className="bg-white border-2 border-blue-500 text-blue-500 px-6 py-2 rounded-md hover:bg-blue-500 hover:text-white dark:bg-gray-800 dark:border-blue-300 dark:text-blue-300 dark:hover:bg-blue-300 dark:hover:text-gray-800">
-            参加する
-          </Button>
+          <Link href="/create">
+            <Button className="bg-white text-blue-500 px-6 py-2 rounded-md hover:bg-blue-500 hover:text-white dark:bg-gray-800 dark:text-blue-300 dark:hover:bg-blue-300 dark:hover:text-gray-800">
+              作成する
+            </Button>
+          </Link>
+          <Link href="/join">
+            <Button className="bg-white border-2 border-blue-500 text-blue-500 px-6 py-2 rounded-md hover:bg-blue-500 hover:text-white dark:bg-gray-800 dark:border-blue-300 dark:text-blue-300 dark:hover:bg-blue-300 dark:hover:text-gray-800">
+              参加する
+            </Button>
+          </Link>
         </div>
       </main>
       <footer className="w-full h-20 flex items-center justify-center border-t border-gray-200 dark:border-gray-800">
