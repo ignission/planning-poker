@@ -42,3 +42,5 @@ jobs:
           channelId: "${{ github.event.number }}"
           expires: 2d
           projectId: planning-poker-c31e4
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
