@@ -1,4 +1,7 @@
+import { initializeFirebaseApp } from '@/lib/firebase/firebase'
 import Image from 'next/image'
+
+initializeFirebaseApp()
 
 export default function Home() {
   return (
