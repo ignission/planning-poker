@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "planning-poker-c31e4"
+  },
+  "targets": {
+    "planning-poker-c31e4": {
+      "hosting": {
+        "planning-poker": [
+          "planning-poker-c31e4"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
