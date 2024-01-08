@@ -46,8 +46,9 @@ export default function CreateRoom() {
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
           <Button
-            className="w-full bg-blue-500 border-2 border-blue-500 hover:bg-white hover:text-blue-500 hover:border-blue-500"
+            className="w-full bg-blue-500 border-2 border-blue-500 hover:bg-white hover:text-blue-500 hover:border-blue-500 disabled:bg-blue-200 disabled:text-blue-400 disabled:border-blue-400"
             onClick={handleCreateRoom}
+            disabled={false}
           >
             作成する
           </Button>
