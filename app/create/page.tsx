@@ -64,6 +64,7 @@ export default function CreateRoom() {
               required
               type="text"
               className="focus:border-blue-500 focus-visible:ring-0"
+              value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
             />
           </div>
@@ -74,6 +75,7 @@ export default function CreateRoom() {
               required
               type="text"
               className="focus:border-blue-500 focus-visible:ring-0"
+              value={userName}
               onChange={(e) => setUserName(e.target.value)}
             />
           </div>
