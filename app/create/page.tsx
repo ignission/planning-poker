@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   CardTitle,
@@ -11,10 +11,42 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { push, ref } from "firebase/database";
+import { FirebaseError } from "firebase/app";
+import { useDatabase } from "reactfire";
 
 export default function CreateRoom() {
-  const handleCreateRoom = () => {
-    alert("ルームを作成しました！");
+  const [roomName, setRoomName] = useState("");
+  const [userName, setUserName] = useState("");
+  const db = useDatabase();
+
+  const handleCreateRoom = async () => {
+    try {
+      const dbRef = ref(db, "rooms");
+      await push(dbRef, {
+        name: roomName,
+        users: [
+          {
+            name: userName,
+            isCreator: true,
+          },
+        ],
+      });
+      setRoomName("");
+      setUserName("");
+    } catch (e) {
+      if (e instanceof FirebaseError) {
+        alert("ルームの作成に失敗しました。");
+        console.log(e);
+        return;
+      }
+    }
+    alert("ルームを作成しました。");
+  };
+
+  const isFormValid = () => {
+    return roomName !== "" && userName !== "";
   };
 
   return (
@@ -32,6 +64,7 @@ export default function CreateRoom() {
               required
               type="text"
               className="focus:border-blue-500 focus-visible:ring-0"
+              onChange={(e) => setRoomName(e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -41,6 +74,7 @@ export default function CreateRoom() {
               required
               type="text"
               className="focus:border-blue-500 focus-visible:ring-0"
+              onChange={(e) => setUserName(e.target.value)}
             />
           </div>
         </CardContent>
@@ -48,7 +82,7 @@ export default function CreateRoom() {
           <Button
             className="w-full bg-blue-500 border-2 border-blue-500 hover:bg-white hover:text-blue-500 hover:border-blue-500 disabled:bg-blue-200 disabled:text-blue-400 disabled:border-blue-400"
             onClick={handleCreateRoom}
-            disabled={false}
+            disabled={!isFormValid()}
           >
             作成する
           </Button>

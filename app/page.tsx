@@ -1,8 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { initializeFirebaseApp } from "@/lib/firebase/firebase";
 import Link from "next/link";
-
-initializeFirebaseApp();
 
 export default function Home() {
   return (
@@ -27,7 +24,6 @@ export default function Home() {
           </Link>
         </div>
       </main>
-
     </div>
   );
 }
