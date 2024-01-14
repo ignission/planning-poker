@@ -16,6 +16,7 @@ import { push, ref } from "firebase/database";
 import { FirebaseError } from "firebase/app";
 import { useDatabase } from "reactfire";
 import { useRouter } from "next/navigation";
+import bs58 from "bs58";
 
 export default function CreateRoom() {
   const [roomName, setRoomName] = useState("");
@@ -38,7 +39,10 @@ export default function CreateRoom() {
       setRoomName("");
       setUserName("");
 
-      router.push("/play/ " + roomRef.key);
+      const bytes = Buffer.from(roomRef.key!);
+      const encodedKey = bs58.encode(bytes);
+
+      router.push(`/play/${encodedKey}`);
     } catch (e) {
       if (e instanceof FirebaseError) {
         alert("ルームの作成に失敗しました。");
