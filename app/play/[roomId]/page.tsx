@@ -3,7 +3,14 @@
 import { Room } from "@/lib/model/room";
 import bs58 from "bs58";
 import { FirebaseError } from "firebase/app";
-import { equalTo, get, onChildChanged, orderByKey, query, ref } from "firebase/database";
+import {
+  equalTo,
+  get,
+  onChildChanged,
+  orderByKey,
+  query,
+  ref,
+} from "firebase/database";
 import { useEffect, useState } from "react";
 import { useDatabase } from "reactfire";
 
@@ -16,9 +23,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
   const db = useDatabase();
   const [room, setRoom] = useState<Room | undefined>(undefined);
 
-
   useEffect(() => {
-  console.log(roomId);
     try {
       const dbRef = ref(db, "rooms");
       const roomQuery = query(ref(db, "rooms"), orderByKey(), equalTo(roomId));
