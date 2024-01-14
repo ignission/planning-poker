@@ -35,7 +35,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
             const room = Object.values(data)[0] as Room;
             setRoom(room);
           } else {
-            console.log("No data available");
+            alert("ルームが見つかりませんでした。");
           }
         })
         .catch((error) => {

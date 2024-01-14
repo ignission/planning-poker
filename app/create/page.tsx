@@ -17,6 +17,7 @@ import { FirebaseError } from "firebase/app";
 import { useDatabase } from "reactfire";
 import { useRouter } from "next/navigation";
 import bs58 from "bs58";
+import { useUserProfilesStore } from "@/lib/store/UserProfilesStore";
 
 export default function CreateRoom() {
   const [roomName, setRoomName] = useState("");
@@ -24,18 +25,27 @@ export default function CreateRoom() {
   const db = useDatabase();
   const router = useRouter();
 
+  // @ts-ignore
+  const { addUserProfile } = useUserProfilesStore();
+
   const handleCreateRoom = async () => {
     try {
-      const dbRef = ref(db, "rooms");
-      const roomRef = await push(dbRef, {
+      const roomDbRef = ref(db, "rooms");
+      const roomRef = await push(roomDbRef, {
         name: roomName,
-        users: [
-          {
-            name: userName,
-            isCreator: true,
-          },
-        ],
+        type: "host",
       });
+
+      const userDbRef = ref(db, `rooms/${roomRef.key}/users`);
+      await push(userDbRef, {
+        name: userName,
+      });
+
+      addUserProfile({
+        roomId: roomRef.key!,
+        name: userName,
+      });
+
       setRoomName("");
       setUserName("");
 
