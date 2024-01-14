@@ -15,16 +15,18 @@ import { useState } from "react";
 import { push, ref } from "firebase/database";
 import { FirebaseError } from "firebase/app";
 import { useDatabase } from "reactfire";
+import { useRouter } from "next/navigation";
 
 export default function CreateRoom() {
   const [roomName, setRoomName] = useState("");
   const [userName, setUserName] = useState("");
   const db = useDatabase();
+  const router = useRouter();
 
   const handleCreateRoom = async () => {
     try {
       const dbRef = ref(db, "rooms");
-      await push(dbRef, {
+      const roomRef = await push(dbRef, {
         name: roomName,
         users: [
           {
@@ -35,6 +37,8 @@ export default function CreateRoom() {
       });
       setRoomName("");
       setUserName("");
+
+      router.push("/play/ " + roomRef.key);
     } catch (e) {
       if (e instanceof FirebaseError) {
         alert("ルームの作成に失敗しました。");
@@ -42,7 +46,6 @@ export default function CreateRoom() {
         return;
       }
     }
-    alert("ルームを作成しました。");
   };
 
   const isFormValid = () => {
