@@ -1,18 +1,18 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
-interface UserProfile {
+export interface UserProfile {
   roomId: string;
   name: string;
 }
 
-interface UserProfilesState {
+export interface UserProfilesState {
   userProfiles: UserProfile[];
   addUserProfile: (profile: UserProfile) => void;
   removeUserProfile: (roomId: string) => void;
 }
 
-export const useUserProfilesStore = create(
+export const useUserProfilesStore = create<UserProfilesState>()(
   persist(
     (set) => ({
       userProfiles: [],
@@ -27,7 +27,7 @@ export const useUserProfilesStore = create(
     }),
     {
       name: "user-profiles-storage",
-      getStorage: () => localStorage,
+      storage: createJSONStorage(() => localStorage),
     },
   ),
 );

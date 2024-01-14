@@ -1,6 +1,7 @@
 "use client";
 
 import { Room } from "@/lib/model/room";
+import { UserProfile, UserProfilesState, useUserProfilesStore } from "@/lib/store/UserProfilesStore";
 import bs58 from "bs58";
 import { FirebaseError } from "firebase/app";
 import {
@@ -11,6 +12,7 @@ import {
   query,
   ref,
 } from "firebase/database";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDatabase } from "reactfire";
 
@@ -21,7 +23,9 @@ export default function Play({ params }: { params: { roomId: string } }) {
   const bytes = bs58.decode(params.roomId);
   const roomId = new TextDecoder().decode(bytes);
   const db = useDatabase();
+  const router = useRouter();
   const [room, setRoom] = useState<Room | undefined>(undefined);
+  const userProfiles = useUserProfilesStore((state) => state.userProfiles);
 
   useEffect(() => {
     try {
@@ -30,12 +34,21 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
       get(roomQuery)
         .then((snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            const room = Object.values(data)[0] as Room;
-            setRoom(room);
-          } else {
+          if (!snapshot.exists()) {
             alert("ルームが見つかりませんでした。");
+            router.push(`/`);
+            return;
+          }
+
+          const data = snapshot.val();
+          const room = Object.values(data)[0] as Room;
+
+          setRoom(room);
+
+          const target = userProfiles.filter((p) => p.roomId === roomId);
+
+          if (target.length === 0) {
+            router.push(`/join/${params.roomId}`);
           }
         })
         .catch((error) => {
