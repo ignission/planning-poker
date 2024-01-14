@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 export interface UserProfile {
   roomId: string;
+  userId: string;
   name: string;
 }
 
