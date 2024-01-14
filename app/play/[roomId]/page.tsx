@@ -111,11 +111,11 @@ export default function Play({ params }: { params: { roomId: string } }) {
           </CardHeader>
           <CardContent>
             <div className="flex gap-4">
-              <Button className="bg-[#FF6347] text-white">Button 1</Button>
-              <Button className="bg-[#32CD32] text-white">Button 2</Button>
-              <Button className="bg-[#FFD700] text-black">Button 3</Button>
-              <Button className="bg-[#1E90FF] text-white">Button 4</Button>
-              <Button className="bg-[#9400D3] text-white">Button 5</Button>
+              <Button className="bg-[#FF6347] text-white">1</Button>
+              <Button className="bg-[#32CD32] text-white">3</Button>
+              <Button className="bg-[#FFD700] text-black">5</Button>
+              <Button className="bg-[#1E90FF] text-white">8</Button>
+              <Button className="bg-[#9400D3] text-white">13</Button>
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
