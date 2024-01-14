@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { push, ref } from "firebase/database";
+import { push, ref, update } from "firebase/database";
 import { FirebaseError } from "firebase/app";
 import { useDatabase } from "reactfire";
 import { useRouter } from "next/navigation";
@@ -33,12 +33,16 @@ export default function CreateRoom() {
       const roomDbRef = ref(db, "rooms");
       const roomRef = await push(roomDbRef, {
         name: roomName,
-        type: "host",
+        hostUserId: "",
       });
 
       const userDbRef = ref(db, `rooms/${roomRef.key}/users`);
-      await push(userDbRef, {
+      const userRef = await push(userDbRef, {
         name: userName,
+      });
+
+      await update(ref(db, `rooms/${roomRef.key}`), {
+        hostUserId: userRef.key,
       });
 
       addUserProfile({
