@@ -15,12 +15,17 @@ import { useUserProfilesStore } from "@/lib/store/UserProfilesStore";
 import bs58 from "bs58";
 import { FirebaseError } from "firebase/app";
 import {
+  DatabaseReference,
+  child,
   equalTo,
   get,
   onChildChanged,
+  onDisconnect,
   orderByKey,
   query,
   ref,
+  set,
+  update,
 } from "firebase/database";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -42,7 +47,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
   useEffect(() => {
     try {
       const dbRef = ref(db, "rooms");
-      const roomQuery = query(ref(db, "rooms"), orderByKey(), equalTo(roomId));
+      const roomQuery = query(dbRef, orderByKey(), equalTo(roomId));
 
       get(roomQuery)
         .then((snapshot) => {
@@ -69,6 +74,17 @@ export default function Play({ params }: { params: { roomId: string } }) {
           get(participantsQuery)
             .then((snapshot) => {
               const participantsRef = snapshot.val();
+              if (participantsRef === null) {
+                setParticipants([
+                  { id: target[0].userId, name: target[0].name },
+                ]);
+                const userDbRef = ref(db, `rooms/${roomId}/users`);
+                const userRef = child(userDbRef, target[0].userId);
+                update(userRef, {
+                  name: target[0].name,
+                });
+                return;
+              }
               const participants = Object.values(
                 participantsRef,
               ) as Participant[];
@@ -83,12 +99,30 @@ export default function Play({ params }: { params: { roomId: string } }) {
           console.error(error);
         });
 
-      return onChildChanged(dbRef, (snapshot) => {
-        const value = snapshot.val();
-        const participants = Object.values(value.users) as Participant[];
-
-        setParticipants(participants);
-      });
+      return () => {
+        onChildChanged(dbRef, (snapshot) => {
+          const value = snapshot.val();
+          if (value.users === undefined) {
+            setParticipants([value]);
+            return;
+          }
+          const participants = Object.values(value.users) as Participant[];
+          if (participants.length === 0) {
+            router.replace(`/`);
+          }
+          setParticipants(participants);
+        });
+        const target = userProfiles.filter((p) => p.roomId === roomId);
+        if (target.length === 0) {
+          return;
+        }
+        const me = target[0];
+        if (me.userId == room?.hostUserId) {
+          onDisconnect(ref(db, `rooms/${roomId}`)).remove();
+          return;
+        }
+        onDisconnect(ref(db, `rooms/${roomId}/users/${me.userId}`)).remove();
+      };
     } catch (e) {
       if (e instanceof FirebaseError) {
         console.error(e);
@@ -129,9 +163,9 @@ export default function Play({ params }: { params: { roomId: string } }) {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              {participants.map((p) => (
+              {participants.map((p, index) => (
                 <div
-                  key={p.id}
+                  key={index}
                   className="bg-gray-200 p-2 rounded flex items-center"
                 >
                   <span className="ml-2">{p.name}</span>
@@ -143,4 +177,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
       </div>
     </div>
   );
+}
+function put(userDbRef: DatabaseReference, arg1: { id: string; name: string }) {
+  throw new Error("Function not implemented.");
 }
