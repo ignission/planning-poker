@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Participant } from "@/lib/model/participant";
-import { Room } from "@/lib/model/room";
 import { useUserProfilesStore } from "@/lib/store/UserProfilesStore";
 import bs58 from "bs58";
 import { FirebaseError } from "firebase/app";
@@ -25,6 +24,7 @@ import {
   ref,
   update,
 } from "firebase/database";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDatabase } from "reactfire";
@@ -38,7 +38,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
   const db = useDatabase();
   const router = useRouter();
 
-  const [room, setRoom] = useState<Room | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const userProfiles = useUserProfilesStore((state) => state.userProfiles);
 
@@ -55,13 +55,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
             return;
           }
 
-          const data = snapshot.val();
-          const room = Object.values(data)[0] as Room;
-
-          setRoom(room);
-
           const target = userProfiles.filter((p) => p.roomId === roomId);
-
           if (target.length === 0) {
             router.push(`/join/${params.roomId}`);
             return;
@@ -88,6 +82,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
               ) as Participant[];
 
               setParticipants(participants);
+              setLoading(false);
             })
             .catch((error) => {
               console.error(error);
@@ -129,46 +124,50 @@ export default function Play({ params }: { params: { roomId: string } }) {
   return (
     <div className="flex flex-col flex-grow items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-300 dark:to-blue-400">
       <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-20" />
-      <div className="flex gap-4">
-        <Card className="flex-1">
-          <CardHeader>
-            <CardTitle>Button Panel</CardTitle>
-            <CardDescription>
-              Select an action by clicking a button.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <Button className="bg-[#FF6347] text-white">1</Button>
-              <Button className="bg-[#32CD32] text-white">3</Button>
-              <Button className="bg-[#FFD700] text-black">5</Button>
-              <Button className="bg-[#1E90FF] text-white">8</Button>
-              <Button className="bg-[#9400D3] text-white">13</Button>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button className="bg-gray-300 text-black">Reset</Button>
-          </CardFooter>
-        </Card>
-        <Card className="flex-1">
-          <CardHeader>
-            <CardTitle>Participants</CardTitle>
-            <CardDescription>View the list of participants.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              {participants.map((p, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-200 p-2 rounded flex items-center"
-                >
-                  <span className="ml-2">{p.name}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {loading ? (
+        <Loader2 className="h-20 w-20 animate-spin text-blue-300" />
+      ) : (
+        <div className="flex gap-4">
+          <Card className="flex-1">
+            <CardHeader>
+              <CardTitle>Button Panel</CardTitle>
+              <CardDescription>
+                Select an action by clicking a button.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4">
+                <Button className="bg-[#FF6347] text-white">1</Button>
+                <Button className="bg-[#32CD32] text-white">3</Button>
+                <Button className="bg-[#FFD700] text-black">5</Button>
+                <Button className="bg-[#1E90FF] text-white">8</Button>
+                <Button className="bg-[#9400D3] text-white">13</Button>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button className="bg-gray-300 text-black">Reset</Button>
+            </CardFooter>
+          </Card>
+          <Card className="flex-1">
+            <CardHeader>
+              <CardTitle>Participants</CardTitle>
+              <CardDescription>View the list of participants.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {participants.map((p, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-200 p-2 rounded flex items-center"
+                  >
+                    <span className="ml-2">{p.name}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
