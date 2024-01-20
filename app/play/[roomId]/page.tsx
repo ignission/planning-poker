@@ -15,7 +15,6 @@ import { useUserProfilesStore } from "@/lib/store/UserProfilesStore";
 import bs58 from "bs58";
 import { FirebaseError } from "firebase/app";
 import {
-  DatabaseReference,
   child,
   equalTo,
   get,
@@ -24,7 +23,6 @@ import {
   orderByKey,
   query,
   ref,
-  set,
   update,
 } from "firebase/database";
 import { useRouter } from "next/navigation";
@@ -177,7 +175,4 @@ export default function Play({ params }: { params: { roomId: string } }) {
       </div>
     </div>
   );
-}
-function put(userDbRef: DatabaseReference, arg1: { id: string; name: string }) {
-  throw new Error("Function not implemented.");
 }
