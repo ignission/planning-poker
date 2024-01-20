@@ -115,10 +115,6 @@ export default function Play({ params }: { params: { roomId: string } }) {
           return;
         }
         const me = target[0];
-        if (me.userId == room?.hostUserId) {
-          onDisconnect(ref(db, `rooms/${roomId}`)).remove();
-          return;
-        }
         onDisconnect(ref(db, `rooms/${roomId}/users/${me.userId}`)).remove();
       };
     } catch (e) {
