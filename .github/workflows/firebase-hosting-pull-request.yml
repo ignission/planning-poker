@@ -35,7 +35,7 @@ jobs:
           npm install
           npm run build
 
-      - uses: FirebaseExtended/action-hosting-deploy@latest
+      - uses: FirebaseExtended/action-hosting-deploy@v0.7.1
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_PLANNING_POKER_C31E4 }}"
