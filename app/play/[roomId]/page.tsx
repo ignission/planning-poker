@@ -257,7 +257,7 @@ interface VoteButtonProps {
   onClick?: (point: number) => void;
 }
 
-export const VoteButton: React.FC<VoteButtonProps> = ({
+const VoteButton: React.FC<VoteButtonProps> = ({
   color,
   point,
   selected,
