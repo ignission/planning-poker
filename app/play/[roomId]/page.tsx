@@ -75,6 +75,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
                 update(userRef, {
                   name: target[0].name,
                 });
+                setLoading(false);
                 return;
               }
               const participants = Object.values(
