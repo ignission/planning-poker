@@ -36,13 +36,20 @@ export default function CreateRoom() {
         hostUserId: "",
       });
 
-      const userDbRef = ref(db, `rooms/${roomRef.key}/users`);
+      const roomId = roomRef.key!;
+      const userDbRef = ref(db, `rooms/${roomId}/users`);
       const userRef = await push(userDbRef, {
         name: userName,
       });
 
-      await update(ref(db, `rooms/${roomRef.key}`), {
-        hostUserId: userRef.key,
+      const userId = userRef.key;
+      await update(ref(db, `rooms/${roomId}`), {
+        hostUserId: userId,
+      });
+
+      await update(ref(db, `rooms/${roomId}/users/${userId}`), {
+        id: userId,
+        name: userName,
       });
 
       addUserProfile({

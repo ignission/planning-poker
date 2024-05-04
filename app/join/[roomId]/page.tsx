@@ -12,7 +12,15 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { equalTo, get, orderByKey, push, query, ref } from "firebase/database";
+import {
+  equalTo,
+  get,
+  orderByKey,
+  push,
+  query,
+  ref,
+  update,
+} from "firebase/database";
 import { FirebaseError } from "firebase/app";
 import { useDatabase } from "reactfire";
 import { useRouter } from "next/navigation";
@@ -72,10 +80,16 @@ export default function JoinRoom({ params }: { params: { roomId: string } }) {
       const userRef = await push(userDbRef, {
         name: userName,
       });
+      const userId = userRef.key;
+
+      await update(ref(db, `rooms/${roomId}/users/${userId}`), {
+        id: userId,
+        name: userName,
+      });
 
       addUserProfile({
         roomId: roomId,
-        userId: userRef.key!,
+        userId: userId!,
         name: userName,
       });
 

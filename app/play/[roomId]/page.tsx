@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Participant } from "@/lib/model/participant";
+import { UserVote } from "@/lib/model/UserVote";
 import {
   UserProfile,
   useUserProfilesStore,
@@ -53,6 +54,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
     const myUserId = user!.userId;
     update(ref(db, `rooms/${roomId}/votes/${myUserId}`), {
+      userId: myUserId,
       point: point,
     });
   };
@@ -107,6 +109,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
         const newParticipant = [{ id: target.userId, name: target.name }];
         setParticipants(newParticipant);
         update(ref(db, `rooms/${roomId}/users/${target.userId}`), {
+          id: target.userId,
           name: target.name,
         });
       } else {
@@ -159,12 +162,26 @@ export default function Play({ params }: { params: { roomId: string } }) {
         router.replace(`/`);
       }
       setParticipants(participants);
+
+      // voteチェック
+      if (participants.length > 1) {
+        const votes = value.votes ? Object.values(value.votes) as UserVote[] : [];        const participantIds = participants.map((p) => p.id);
+        const voteUserIds = votes.map((v) => v.userId);
+        const allParticipantsVoted = participantIds.every((id) =>
+          voteUserIds.includes(id),
+        );
+        console.log(allParticipantsVoted);
+        console.log("voteUserIds", voteUserIds);
+        console.log("participantIds", participantIds);
+        console.log("participants", participants);
+      }
     });
 
     const target = userProfiles.filter((p) => p.roomId === roomId);
     if (target.length === 0) {
       return;
     }
+
     const me = target[0];
     onDisconnect(ref(db, `rooms/${roomId}/users/${me.userId}`)).remove();
   };
