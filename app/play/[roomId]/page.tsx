@@ -10,11 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Participant } from "@/lib/model/participant";
-import { useUserProfilesStore } from "@/lib/store/UserProfilesStore";
-import bs58 from "bs58";
-import { FirebaseError } from "firebase/app";
 import {
-  child,
+  UserProfile,
+  useUserProfilesStore,
+} from "@/lib/store/UserProfilesStore";
+import bs58 from "bs58";
+import {
+  DataSnapshot,
+  DatabaseReference,
   equalTo,
   get,
   onChildChanged,
@@ -52,84 +55,90 @@ export default function Play({ params }: { params: { roomId: string } }) {
   };
 
   useEffect(() => {
-    try {
-      const dbRef = ref(db, "rooms");
-      const roomQuery = query(dbRef, orderByKey(), equalTo(roomId));
-
-      get(roomQuery)
-        .then((snapshot) => {
-          if (!snapshot.exists()) {
-            alert("ルームが見つかりませんでした。");
-            router.push(`/`);
-            return;
-          }
-
-          const target = userProfiles.filter((p) => p.roomId === roomId);
-          if (target.length === 0) {
-            router.push(`/join/${params.roomId}`);
-            return;
-          }
-
-          const participantsQuery = query(ref(db, `rooms/${roomId}/users`));
-
-          get(participantsQuery)
-            .then((snapshot) => {
-              const participantsRef = snapshot.val();
-              if (participantsRef === null) {
-                setParticipants([
-                  { id: target[0].userId, name: target[0].name },
-                ]);
-                const userDbRef = ref(db, `rooms/${roomId}/users`);
-                const userRef = child(userDbRef, target[0].userId);
-                update(userRef, {
-                  name: target[0].name,
-                });
-                setLoading(false);
-                return;
-              }
-              const participants = Object.values(
-                participantsRef,
-              ) as Participant[];
-
-              setParticipants(participants);
-              setLoading(false);
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-
-      return () => {
-        onChildChanged(dbRef, (snapshot) => {
-          const value = snapshot.val();
-          if (value.users === undefined) {
-            setParticipants([value]);
-            return;
-          }
-          const participants = Object.values(value.users) as Participant[];
-          if (participants.length === 0) {
-            router.replace(`/`);
-          }
-          setParticipants(participants);
-        });
-        const target = userProfiles.filter((p) => p.roomId === roomId);
-        if (target.length === 0) {
+    const fetchRoomData = async () => {
+      try {
+        const roomSnapshot = await getRoomSnapshot();
+        if (!roomSnapshot.exists()) {
+          alert("ルームが見つかりませんでした。");
+          router.push(`/`);
           return;
         }
-        const me = target[0];
-        onDisconnect(ref(db, `rooms/${roomId}/users/${me.userId}`)).remove();
-      };
-    } catch (e) {
-      if (e instanceof FirebaseError) {
-        console.error(e);
+
+        await handleParticipants(roomSnapshot);
+      } catch (error) {
+        console.error(error);
       }
-      return;
-    }
+    };
+
+    const getRoomSnapshot = () => {
+      const dbRef = ref(db, "rooms");
+      const roomQuery = query(dbRef, orderByKey(), equalTo(roomId));
+      return get(roomQuery);
+    };
+
+    const handleParticipants = async (roomSnapshot: DataSnapshot) => {
+      const target = userProfiles.filter((p) => p.roomId === roomId);
+      if (target.length === 0) {
+        router.push(`/join/${params.roomId}`);
+        return;
+      }
+
+      const participantsSnapshot = await getParticipantsSnapshot();
+      updateParticipants(participantsSnapshot, target);
+    };
+
+    const getParticipantsSnapshot = () => {
+      return get(query(ref(db, `rooms/${roomId}/users`)));
+    };
+
+    const updateParticipants = (
+      participantsSnapshot: DataSnapshot,
+      target: UserProfile[],
+    ) => {
+      const participantsRef = participantsSnapshot.val();
+      if (participantsRef === null) {
+        const newParticipant = [{ id: target[0].userId, name: target[0].name }];
+        setParticipants(newParticipant);
+        update(ref(db, `rooms/${roomId}/users/${target[0].userId}`), {
+          name: target[0].name,
+        });
+      } else {
+        const participants = Object.values(participantsRef) as Participant[];
+        setParticipants(participants);
+      }
+      setLoading(false);
+    };
+
+    fetchRoomData();
+
+    return () => {
+      const dbRef = ref(db, "rooms");
+      setupRealtimeUpdates(dbRef);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const setupRealtimeUpdates = (dbRef: DatabaseReference) => {
+    onChildChanged(dbRef, (snapshot) => {
+      const value = snapshot.val();
+      if (value.users === undefined) {
+        setParticipants([value]);
+        return;
+      }
+      const participants = Object.values(value.users) as Participant[];
+      if (participants.length === 0) {
+        router.replace(`/`);
+      }
+      setParticipants(participants);
+    });
+
+    const target = userProfiles.filter((p) => p.roomId === roomId);
+    if (target.length === 0) {
+      return;
+    }
+    const me = target[0];
+    onDisconnect(ref(db, `rooms/${roomId}/users/${me.userId}`)).remove();
+  };
 
   return (
     <div className="flex flex-col flex-grow items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-300 dark:to-blue-400">
