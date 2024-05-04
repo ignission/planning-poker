@@ -25,6 +25,7 @@ import {
   orderByKey,
   query,
   ref,
+  remove,
   update,
 } from "firebase/database";
 import { Loader2 } from "lucide-react";
@@ -43,30 +44,33 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
   const [loading, setLoading] = useState(true);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
   const userProfiles = useUserProfilesStore((state) => state.userProfiles);
 
   const handleVoteClick = (point: number) => {
     setSelectedPoint(point);
+
+    const myUserId = user!.userId;
+    update(ref(db, `rooms/${roomId}/votes/${myUserId}`), {
+      point: point,
+    });
   };
 
   const resetSelection = () => {
     setSelectedPoint(null);
+
+    const myUserId = user!.userId;
+    remove(ref(db, `rooms/${roomId}/votes/${myUserId}`));
   };
 
   useEffect(() => {
     const fetchRoomData = async () => {
-      try {
-        const roomSnapshot = await getRoomSnapshot();
-        if (!roomSnapshot.exists()) {
-          alert("ルームが見つかりませんでした。");
-          router.push(`/`);
-          return;
-        }
-
-        await handleParticipants(roomSnapshot);
-      } catch (error) {
-        console.error(error);
+      const roomSnapshot = await getRoomSnapshot();
+      if (!roomSnapshot.exists()) {
+        alert("ルームが見つかりませんでした。");
+        router.push(`/`);
+        return;
       }
     };
 
@@ -76,7 +80,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
       return get(roomQuery);
     };
 
-    const handleParticipants = async (roomSnapshot: DataSnapshot) => {
+    const handleParticipants = async () => {
       const target = userProfiles.filter((p) => p.roomId === roomId);
       if (target.length === 0) {
         router.push(`/join/${params.roomId}`);
@@ -84,7 +88,10 @@ export default function Play({ params }: { params: { roomId: string } }) {
       }
 
       const participantsSnapshot = await getParticipantsSnapshot();
-      updateParticipants(participantsSnapshot, target);
+      const myself = target[0];
+      updateParticipants(participantsSnapshot, myself);
+      setUser(myself);
+      return myself;
     };
 
     const getParticipantsSnapshot = () => {
@@ -93,14 +100,14 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
     const updateParticipants = (
       participantsSnapshot: DataSnapshot,
-      target: UserProfile[],
+      target: UserProfile,
     ) => {
       const participantsRef = participantsSnapshot.val();
       if (participantsRef === null) {
-        const newParticipant = [{ id: target[0].userId, name: target[0].name }];
+        const newParticipant = [{ id: target.userId, name: target.name }];
         setParticipants(newParticipant);
-        update(ref(db, `rooms/${roomId}/users/${target[0].userId}`), {
-          name: target[0].name,
+        update(ref(db, `rooms/${roomId}/users/${target.userId}`), {
+          name: target.name,
         });
       } else {
         const participants = Object.values(participantsRef) as Participant[];
@@ -109,7 +116,29 @@ export default function Play({ params }: { params: { roomId: string } }) {
       setLoading(false);
     };
 
-    fetchRoomData();
+    const updateVote = async (myself: UserProfile) => {
+      const myUserId = myself.userId;
+      const myVoteRef = ref(db, `rooms/${roomId}/votes/${myUserId}`);
+      const myVoteSnapshot = await get(query(myVoteRef));
+      const value = myVoteSnapshot.val();
+      if (value === null) {
+        setSelectedPoint(null);
+        return;
+      }
+      setSelectedPoint(value.point);
+    };
+
+    (async () => {
+      try {
+        await fetchRoomData();
+        const myself = await handleParticipants();
+        if (myself != null) {
+          await updateVote(myself);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    })();
 
     return () => {
       const dbRef = ref(db, "rooms");
