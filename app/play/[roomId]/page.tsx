@@ -40,7 +40,16 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
   const [loading, setLoading] = useState(true);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
   const userProfiles = useUserProfilesStore((state) => state.userProfiles);
+
+  const handleVoteClick = (point: number) => {
+    setSelectedPoint(point);
+  };
+
+  const resetSelection = () => {
+    setSelectedPoint(null);
+  };
 
   useEffect(() => {
     try {
@@ -138,15 +147,45 @@ export default function Play({ params }: { params: { roomId: string } }) {
             </CardHeader>
             <CardContent>
               <div className="flex gap-4">
-                <Button className="bg-[#FF6347] text-white">1</Button>
-                <Button className="bg-[#32CD32] text-white">3</Button>
-                <Button className="bg-[#FFD700] text-black">5</Button>
-                <Button className="bg-[#1E90FF] text-white">8</Button>
-                <Button className="bg-[#9400D3] text-white">13</Button>
+                <VoteButton
+                  color="#FF6347"
+                  point={1}
+                  selected={selectedPoint}
+                  onClick={handleVoteClick}
+                />
+                <VoteButton
+                  color="#32CD32"
+                  point={3}
+                  selected={selectedPoint}
+                  onClick={handleVoteClick}
+                />
+                <VoteButton
+                  color="#FFD700"
+                  point={5}
+                  selected={selectedPoint}
+                  onClick={handleVoteClick}
+                />
+                <VoteButton
+                  color="#1E90FF"
+                  point={8}
+                  selected={selectedPoint}
+                  onClick={handleVoteClick}
+                />
+                <VoteButton
+                  color="#9400D3"
+                  point={13}
+                  selected={selectedPoint}
+                  onClick={handleVoteClick}
+                />
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button className="bg-gray-300 text-black">Reset</Button>
+              <Button
+                className="bg-gray-300 text-black"
+                onClick={resetSelection}
+              >
+                Reset
+              </Button>
             </CardFooter>
           </Card>
           <Card className="flex-1">
@@ -172,3 +211,34 @@ export default function Play({ params }: { params: { roomId: string } }) {
     </div>
   );
 }
+
+interface VoteButtonProps {
+  color: string;
+  point: number;
+  selected: number | null;
+  onClick?: (point: number) => void;
+}
+
+export const VoteButton: React.FC<VoteButtonProps> = ({
+  color,
+  point,
+  selected,
+  onClick,
+}) => {
+  const toggleStyle = () => {
+    if (onClick) {
+      onClick(point);
+    }
+  };
+
+  const buttonStyle =
+    point == selected
+      ? `bg-[${color}] text-white border-2 border-[${color}] hover:bg-[${color}]`
+      : `border-2 border-[${color}] text-${color} bg-transparent hover:bg-white`;
+
+  return (
+    <Button className={buttonStyle} onClick={toggleStyle}>
+      {point}
+    </Button>
+  );
+};
