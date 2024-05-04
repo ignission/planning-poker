@@ -1,14 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Participant } from "@/lib/model/participant";
 import { UserVote } from "@/lib/model/UserVote";
 import {
@@ -33,6 +24,8 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDatabase } from "reactfire";
+import { VotePanel } from "./VotePanel";
+import { ParticipantsList } from "./ParticipantList";
 
 export default function Play({ params }: { params: { roomId: string } }) {
   if (!params.roomId) {
@@ -163,17 +156,15 @@ export default function Play({ params }: { params: { roomId: string } }) {
       }
       setParticipants(participants);
 
-      // voteチェック
       if (participants.length > 1) {
-        const votes = value.votes ? Object.values(value.votes) as UserVote[] : [];        const participantIds = participants.map((p) => p.id);
+        const votes = value.votes
+          ? (Object.values(value.votes) as UserVote[])
+          : [];
+        const participantIds = participants.map((p) => p.id);
         const voteUserIds = votes.map((v) => v.userId);
         const allParticipantsVoted = participantIds.every((id) =>
           voteUserIds.includes(id),
         );
-        console.log(allParticipantsVoted);
-        console.log("voteUserIds", voteUserIds);
-        console.log("participantIds", participantIds);
-        console.log("participants", participants);
       }
     });
 
@@ -193,107 +184,14 @@ export default function Play({ params }: { params: { roomId: string } }) {
         <Loader2 className="h-20 w-20 animate-spin text-blue-300" />
       ) : (
         <div className="flex gap-4">
-          <Card className="flex-1">
-            <CardHeader>
-              <CardTitle>Button Panel</CardTitle>
-              <CardDescription>
-                Select an action by clicking a button.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4">
-                <VoteButton
-                  color="#FF6347"
-                  point={1}
-                  selected={selectedPoint}
-                  onClick={handleVoteClick}
-                />
-                <VoteButton
-                  color="#32CD32"
-                  point={3}
-                  selected={selectedPoint}
-                  onClick={handleVoteClick}
-                />
-                <VoteButton
-                  color="#FFD700"
-                  point={5}
-                  selected={selectedPoint}
-                  onClick={handleVoteClick}
-                />
-                <VoteButton
-                  color="#1E90FF"
-                  point={8}
-                  selected={selectedPoint}
-                  onClick={handleVoteClick}
-                />
-                <VoteButton
-                  color="#9400D3"
-                  point={13}
-                  selected={selectedPoint}
-                  onClick={handleVoteClick}
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button
-                className="bg-gray-300 text-black"
-                onClick={resetSelection}
-              >
-                Reset
-              </Button>
-            </CardFooter>
-          </Card>
-          <Card className="flex-1">
-            <CardHeader>
-              <CardTitle>Participants</CardTitle>
-              <CardDescription>View the list of participants.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
-                {participants.map((p, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-200 p-2 rounded flex items-center"
-                  >
-                    <span className="ml-2">{p.name}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <VotePanel
+            selectedPoint={selectedPoint}
+            handleVoteClick={handleVoteClick}
+            resetSelection={resetSelection}
+          ></VotePanel>
+          <ParticipantsList participants={participants} />
         </div>
       )}
     </div>
   );
 }
-
-interface VoteButtonProps {
-  color: string;
-  point: number;
-  selected: number | null;
-  onClick?: (point: number) => void;
-}
-
-const VoteButton: React.FC<VoteButtonProps> = ({
-  color,
-  point,
-  selected,
-  onClick,
-}) => {
-  const toggleStyle = () => {
-    if (onClick) {
-      onClick(point);
-    }
-  };
-
-  const buttonStyle =
-    point == selected
-      ? `bg-[${color}] text-white border-2 border-[${color}] hover:bg-[${color}]`
-      : `border-2 border-[${color}] text-${color} bg-transparent hover:bg-white`;
-
-  return (
-    <Button className={buttonStyle} onClick={toggleStyle}>
-      {point}
-    </Button>
-  );
-};
