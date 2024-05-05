@@ -16,7 +16,6 @@ import {
   orderByKey,
   query,
   ref,
-  remove,
   update,
 } from "firebase/database";
 import { Loader2 } from "lucide-react";
@@ -38,25 +37,9 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
   const userProfiles = useUserProfilesStore((state) => state.userProfiles);
 
-  const handleVoteClick = async (point: number) => {
-    setSelectedPoint(point);
 
-    const myUserId = user!.userId;
-    await update(ref(db, `rooms/${roomId}/votes/${myUserId}`), {
-      userId: myUserId,
-      point: point,
-    });
-  };
-
-  const resetSelection = async () => {
-    setSelectedPoint(null);
-
-    const myUserId = user!.userId;
-    await remove(ref(db, `rooms/${roomId}/votes/${myUserId}`));
-  };
 
   useEffect(() => {
     const getRoomSnapshot = () :Promise<DataSnapshot> => {
@@ -102,25 +85,12 @@ export default function Play({ params }: { params: { roomId: string } }) {
       }
     };
 
-    const updateVote = async (myself: UserProfile): Promise<void> => {
-      const myUserId = myself.userId;
-      const myVoteRef = ref(db, `rooms/${roomId}/votes/${myUserId}`);
-      const myVoteSnapshot = await get(query(myVoteRef));
-      const value = myVoteSnapshot.val();
-      if (value === null) {
-        setSelectedPoint(null);
-        return;
-      }
-      setSelectedPoint(value.point);
-    };
-
     (async () => {
       try {
         await validateRoomExists();
         const myself =  validateRecentlyJoined();
         if (myself != null) {
           await updateMyself(myself);
-          await updateVote(myself);
           setUser(myself);
         }
         setLoading(false);
@@ -129,22 +99,29 @@ export default function Play({ params }: { params: { roomId: string } }) {
       }
     })();
 
-    return () => {
+    return ()  => {
       const dbRef = ref(db, "rooms");
-      setupRealtimeUpdates(dbRef);
+      (async () => {
+        await setupRealtimeUpdates(dbRef);
+      })();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const setupRealtimeUpdates = (dbRef: DatabaseReference) => {
+  const setupRealtimeUpdates = async (dbRef: DatabaseReference) => {
     onChildChanged(dbRef, (snapshot) => {
       const value = snapshot.val();
       if (value.users === undefined) {
         return;
       }
       const participants = Object.values(value.users) as Participant[];
+
       if (participants.length === 0) {
         router.replace(`/`);
+      }
+
+      if (participants.length === 1) {
+        return;
       }
 
       if (participants.length > 1) {
@@ -165,7 +142,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
     }
 
     const me = target[0];
-    onDisconnect(ref(db, `rooms/${roomId}/users/${me.userId}`)).remove();
+    await onDisconnect(ref(db, `rooms/${roomId}/users/${me.userId}`)).remove();
   };
 
   return (
@@ -176,9 +153,8 @@ export default function Play({ params }: { params: { roomId: string } }) {
       ) : (
         <div className="flex gap-4">
           <VotePanel
-            selectedPoint={selectedPoint}
-            handleVoteClick={handleVoteClick}
-            resetSelection={resetSelection}
+            roomId={roomId}
+            userId={user?.userId!}
           ></VotePanel>
           <ParticipantsList roomId={roomId} />
         </div>
