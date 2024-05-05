@@ -24,6 +24,8 @@ import { useDatabase } from "reactfire";
 import { VotePanel } from "@/components/VotePanel";
 import { ParticipantsList } from "@/components/ParticipantList";
 import { Participant } from "@/lib/model/participant";
+import {Room} from "@/lib/model/room";
+import {ResultView} from "@/components/ResultView";
 
 export default function Play({ params }: { params: { roomId: string } }) {
   if (!params.roomId) {
@@ -36,9 +38,9 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [finished, setFinished] = useState<boolean>(false);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const userProfiles = useUserProfilesStore((state) => state.userProfiles);
-
-
 
   useEffect(() => {
     const getRoomSnapshot = () :Promise<DataSnapshot> => {
@@ -52,13 +54,14 @@ export default function Play({ params }: { params: { roomId: string } }) {
       return get(usersQuery);
     };
 
-    const validateRoomExists = async (): Promise<void> => {
+    const validateRoomExists = async (): Promise<Room | null> => {
       const roomSnapshot = await getRoomSnapshot();
       if (!roomSnapshot.exists()) {
         alert("ルームが見つかりませんでした。");
         router.push(`/`);
-        return;
+        return null;
       }
+      return roomSnapshot.val();
     };
 
     const validateRecentlyJoined = (): UserProfile | null => {
@@ -86,7 +89,10 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
     (async () => {
       try {
-        await validateRoomExists();
+        const room = await validateRoomExists();
+        if (room !== null) {
+          setFinished(room.finished);
+        }
         const myself =  validateRecentlyJoined();
         if (myself != null) {
           await updateMyself(myself);
@@ -119,6 +125,8 @@ export default function Play({ params }: { params: { roomId: string } }) {
         router.replace(`/`);
       }
 
+      setParticipants(participants);
+
       if (participants.length === 1) {
         return;
       }
@@ -138,6 +146,8 @@ export default function Play({ params }: { params: { roomId: string } }) {
       <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-20" />
       {loading ? (
         <Loader2 className="h-20 w-20 animate-spin text-blue-300" />
+      ) : finished ? (
+        <ResultView roomId={roomId} userId={user?.userId!} participants={participants} />
       ) : (
         <div className="flex gap-4">
           <VotePanel

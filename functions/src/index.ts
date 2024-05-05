@@ -32,7 +32,7 @@ export const handleVote = database.onValueWritten(
       logger.log("Users: " + JSON.stringify(users));
       return;
     }
-    // roomのstatusをfinishedにする
-    return event.data.after.ref.update({status: "finished"});
+
+    return event.data.after.ref.update({finished: true});
   }
 );

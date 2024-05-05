@@ -34,7 +34,7 @@ export default function CreateRoom() {
       const roomRef = await push(roomDbRef, {
         name: roomName,
         hostUserId: "",
-        status: "waiting",
+        finished: false,
       });
 
       const roomId = roomRef.key!;
