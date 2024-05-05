@@ -1,6 +1,5 @@
 "use client";
 
-import { Participant } from "@/lib/model/participant";
 import { UserVote } from "@/lib/model/UserVote";
 import {
   UserProfile,
@@ -26,6 +25,7 @@ import { useEffect, useState } from "react";
 import { useDatabase } from "reactfire";
 import { VotePanel } from "@/components/VotePanel";
 import { ParticipantsList } from "@/components/ParticipantList";
+import { Participant } from "@/lib/model/Participant";
 
 export default function Play({ params }: { params: { roomId: string } }) {
   if (!params.roomId) {
@@ -37,7 +37,6 @@ export default function Play({ params }: { params: { roomId: string } }) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [participants, setParticipants] = useState<Participant[]>([]);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
   const userProfiles = useUserProfilesStore((state) => state.userProfiles);
@@ -99,15 +98,12 @@ export default function Play({ params }: { params: { roomId: string } }) {
     ) => {
       const participantsRef = participantsSnapshot.val();
       if (participantsRef === null) {
-        const newParticipant = [{ id: target.userId, name: target.name }];
-        setParticipants(newParticipant);
         update(ref(db, `rooms/${roomId}/users/${target.userId}`), {
           id: target.userId,
           name: target.name,
         });
       } else {
-        const participants = Object.values(participantsRef) as Participant[];
-        setParticipants(participants);
+        // const participants = Object.values(participantsRef) as Participant[];
       }
       setLoading(false);
     };
@@ -147,14 +143,14 @@ export default function Play({ params }: { params: { roomId: string } }) {
     onChildChanged(dbRef, (snapshot) => {
       const value = snapshot.val();
       if (value.users === undefined) {
-        setParticipants([value]);
+        // setParticipants([value]);
         return;
       }
       const participants = Object.values(value.users) as Participant[];
       if (participants.length === 0) {
         router.replace(`/`);
       }
-      setParticipants(participants);
+      // setParticipants(participants);
 
       if (participants.length > 1) {
         const votes = value.votes
@@ -189,7 +185,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
             handleVoteClick={handleVoteClick}
             resetSelection={resetSelection}
           ></VotePanel>
-          <ParticipantsList participants={participants} />
+          <ParticipantsList roomId={roomId} />
         </div>
       )}
     </div>
