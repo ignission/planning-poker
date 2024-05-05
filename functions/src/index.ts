@@ -1,13 +1,14 @@
 import * as admin from "firebase-admin";
+import * as database from "firebase-functions/v2/database";
 
-import {onValueWritten} from "firebase-functions/lib/v2/providers/database";
 import {logger} from "firebase-functions";
 
 admin.initializeApp();
 
-exports.handleVote = onValueWritten(
-  "/rooms/${roomId}/users",
+export const handleVote = database.onValueWritten(
+  "/rooms/{roomId}/users",
   (event) => {
     logger.log("Event data: ", event.data);
+    logger.log("Event params: ", event.params);
   }
 );
