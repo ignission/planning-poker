@@ -8,7 +8,7 @@ admin.initializeApp();
 export const handleVote = database.onValueWritten(
   "/rooms/{roomId}/users",
   (event) => {
-    logger.log("Event data: ", event.data);
-    logger.log("Event params: ", event.params);
+    logger.log("Event data: ", JSON.stringify(event.data));
+    logger.log("Event params: ", JSON.stringify(event.params));
   }
 );
