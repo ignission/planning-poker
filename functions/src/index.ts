@@ -26,7 +26,10 @@ export const handleVote = database.onValueWritten(
       return;
     }
 
-    const voted = list.every((user: any) => user.point !== null && user.point !== undefined);
+    const voted = list.every(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (user: any) => user.point !== null && user.point !== undefined
+    );
     if (!voted) {
       logger.log("Not all users have voted");
       logger.log("List: " + JSON.stringify(list));
