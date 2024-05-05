@@ -1,6 +1,5 @@
 "use client";
 
-import { UserVote } from "@/lib/model/UserVote";
 import {
   UserProfile,
   useUserProfilesStore,
@@ -122,17 +121,6 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
       if (participants.length === 1) {
         return;
-      }
-
-      if (participants.length > 1) {
-        const votes = value.votes
-          ? (Object.values(value.votes) as UserVote[])
-          : [];
-        const participantIds = participants.map((p) => p.id);
-        const voteUserIds = votes.map((v) => v.userId);
-        const allParticipantsVoted = participantIds.every((id) =>
-          voteUserIds.includes(id),
-        );
       }
     });
 

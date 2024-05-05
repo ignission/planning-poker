@@ -6,34 +6,33 @@ import {logger} from "firebase-functions";
 admin.initializeApp();
 
 export const handleVote = database.onValueWritten(
-  "/rooms/{roomId}/users",
+  "/rooms/{roomId}",
   (event) => {
-    const roomId = event.params.roomId;
-
-    logger.log("root id: " + roomId);
-
     if (!event.data.after.exists()) {
       logger.log("Data after is null");
       return;
     }
 
-    const original = event.data.after.val();
-    const list = Object.values(original);
+    const roomData = event.data.after.val();
+    const userData = roomData.users;
+    const users = Object.values(userData);
 
-    if (list.length <= 1) {
+    if (users.length <= 1) {
       logger.log("Not enough users to handle vote");
-      logger.log("List length: " + list.length);
+      logger.log("User length: " + users.length);
       return;
     }
 
-    const voted = list.every(
+    const voted = users.every(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (user: any) => user.point !== null && user.point !== undefined
     );
     if (!voted) {
       logger.log("Not all users have voted");
-      logger.log("List: " + JSON.stringify(list));
+      logger.log("Users: " + JSON.stringify(users));
       return;
     }
+    // roomのstatusをfinishedにする
+    return event.data.after.ref.update({status: "finished"});
   }
 );
