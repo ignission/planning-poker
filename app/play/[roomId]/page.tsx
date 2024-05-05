@@ -24,8 +24,8 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDatabase } from "reactfire";
-import { VotePanel } from "./VotePanel";
-import { ParticipantsList } from "./ParticipantList";
+import { VotePanel } from "@/components/VotePanel";
+import { ParticipantsList } from "@/components/ParticipantList";
 
 export default function Play({ params }: { params: { roomId: string } }) {
   if (!params.roomId) {
