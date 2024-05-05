@@ -126,6 +126,7 @@ export default function Play({ params }: { params: { roomId: string } }) {
       }
 
       setParticipants(participants);
+      setFinished(value.finished);
 
       if (participants.length === 1) {
         return;

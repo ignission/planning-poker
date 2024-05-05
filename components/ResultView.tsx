@@ -29,12 +29,15 @@ export function ResultView({ roomId, userId, participants }: ResultViewProps) {
   };
 
   const pointCount: { [key: number]: number } = {};
+  [1, 3, 5, 8, 13].forEach((point) => {
+    pointCount[point] = 0;
+  });
   Object.values(participants).forEach((p) => {
     pointCount[p.point!]++;
   });
 
   return (
-    <Card className="flex-1">
+    <Card>
       <CardHeader>
         <CardTitle>Result</CardTitle>
         <CardDescription></CardDescription>
@@ -42,7 +45,6 @@ export function ResultView({ roomId, userId, participants }: ResultViewProps) {
       <CardContent>
         <div className="flex flex-col gap-4">
           <div className="flex justify-start gap-4">
-            {/* pointCount[p.point!] の数だけ VoteItem を生成する*/}
             {Array(pointCount[1]).fill(null).map((_, i) => (
               <VoteItem
                 key={i}
