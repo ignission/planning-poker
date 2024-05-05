@@ -1,4 +1,5 @@
-import admin = require("firebase-admin");
+import * as admin from "firebase-admin";
+
 import {onValueWritten} from "firebase-functions/lib/v2/providers/database";
 import {logger} from "firebase-functions";
 
