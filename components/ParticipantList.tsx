@@ -7,11 +7,11 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { Participant } from "@/lib/model/Participant";
 import { useDatabase } from "reactfire";
 import {useEffect, useState} from "react";
 import { Loader2 } from "lucide-react";
 import {get, off, onValue, ref} from "firebase/database";
+import { Participant } from "@/lib/model/participant";
 
 interface ParticipantsListProps {
   roomId: string;

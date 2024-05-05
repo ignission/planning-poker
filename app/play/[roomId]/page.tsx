@@ -24,7 +24,7 @@ import { useEffect, useState } from "react";
 import { useDatabase } from "reactfire";
 import { VotePanel } from "@/components/VotePanel";
 import { ParticipantsList } from "@/components/ParticipantList";
-import { Participant } from "@/lib/model/Participant";
+import { Participant } from "@/lib/model/participant";
 
 export default function Play({ params }: { params: { roomId: string } }) {
   if (!params.roomId) {

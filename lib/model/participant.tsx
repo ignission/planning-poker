@@ -5,7 +5,7 @@ export interface Participant {
     voted: boolean;
 }
 
-export const Participant = (value: any) => {
+export const Participant = (value: any): Participant => {
   const point = value.point !== undefined ? value.point : null;
   return {
     id: value.id,
