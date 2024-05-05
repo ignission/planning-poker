@@ -41,25 +41,36 @@ export default function Play({ params }: { params: { roomId: string } }) {
   const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
   const userProfiles = useUserProfilesStore((state) => state.userProfiles);
 
-  const handleVoteClick = (point: number) => {
+  const handleVoteClick = async (point: number) => {
     setSelectedPoint(point);
 
     const myUserId = user!.userId;
-    update(ref(db, `rooms/${roomId}/votes/${myUserId}`), {
+    await update(ref(db, `rooms/${roomId}/votes/${myUserId}`), {
       userId: myUserId,
       point: point,
     });
   };
 
-  const resetSelection = () => {
+  const resetSelection = async () => {
     setSelectedPoint(null);
 
     const myUserId = user!.userId;
-    remove(ref(db, `rooms/${roomId}/votes/${myUserId}`));
+    await remove(ref(db, `rooms/${roomId}/votes/${myUserId}`));
   };
 
   useEffect(() => {
-    const fetchRoomData = async () => {
+    const getRoomSnapshot = () :Promise<DataSnapshot> => {
+      const dbRef = ref(db, "rooms");
+      const roomQuery = query(dbRef, orderByKey(), equalTo(roomId));
+      return get(roomQuery);
+    };
+
+    const getParticipantsSnapshot = (): Promise<DataSnapshot> => {
+      const usersQuery = query(ref(db, `rooms/${roomId}/users`));
+      return get(usersQuery);
+    };
+
+    const validateRoomExists = async (): Promise<void> => {
       const roomSnapshot = await getRoomSnapshot();
       if (!roomSnapshot.exists()) {
         alert("ルームが見つかりませんでした。");
@@ -68,47 +79,30 @@ export default function Play({ params }: { params: { roomId: string } }) {
       }
     };
 
-    const getRoomSnapshot = () => {
-      const dbRef = ref(db, "rooms");
-      const roomQuery = query(dbRef, orderByKey(), equalTo(roomId));
-      return get(roomQuery);
-    };
-
-    const handleParticipants = async () => {
+    const validateRecentlyJoined = (): UserProfile | null => {
       const target = userProfiles.filter((p) => p.roomId === roomId);
       if (target.length === 0) {
         router.push(`/join/${params.roomId}`);
-        return;
+        return null;
       }
 
-      const participantsSnapshot = await getParticipantsSnapshot();
-      const myself = target[0];
-      updateParticipants(participantsSnapshot, myself);
-      setUser(myself);
-      return myself;
+      return target[0];
     };
 
-    const getParticipantsSnapshot = () => {
-      return get(query(ref(db, `rooms/${roomId}/users`)));
-    };
-
-    const updateParticipants = (
-      participantsSnapshot: DataSnapshot,
+    const updateMyself = async (
       target: UserProfile,
-    ) => {
+    ): Promise<void> => {
+      const participantsSnapshot = await getParticipantsSnapshot();
       const participantsRef = participantsSnapshot.val();
       if (participantsRef === null) {
-        update(ref(db, `rooms/${roomId}/users/${target.userId}`), {
+        await update(ref(db, `rooms/${roomId}/users/${target.userId}`), {
           id: target.userId,
           name: target.name,
         });
-      } else {
-        // const participants = Object.values(participantsRef) as Participant[];
       }
-      setLoading(false);
     };
 
-    const updateVote = async (myself: UserProfile) => {
+    const updateVote = async (myself: UserProfile): Promise<void> => {
       const myUserId = myself.userId;
       const myVoteRef = ref(db, `rooms/${roomId}/votes/${myUserId}`);
       const myVoteSnapshot = await get(query(myVoteRef));
@@ -122,11 +116,14 @@ export default function Play({ params }: { params: { roomId: string } }) {
 
     (async () => {
       try {
-        await fetchRoomData();
-        const myself = await handleParticipants();
+        await validateRoomExists();
+        const myself =  validateRecentlyJoined();
         if (myself != null) {
+          await updateMyself(myself);
           await updateVote(myself);
+          setUser(myself);
         }
+        setLoading(false);
       } catch (error) {
         console.error(error);
       }
@@ -143,14 +140,12 @@ export default function Play({ params }: { params: { roomId: string } }) {
     onChildChanged(dbRef, (snapshot) => {
       const value = snapshot.val();
       if (value.users === undefined) {
-        // setParticipants([value]);
         return;
       }
       const participants = Object.values(value.users) as Participant[];
       if (participants.length === 0) {
         router.replace(`/`);
       }
-      // setParticipants(participants);
 
       if (participants.length > 1) {
         const votes = value.votes

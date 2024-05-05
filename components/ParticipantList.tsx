@@ -59,10 +59,12 @@ export function ParticipantsList({ roomId }: ParticipantsListProps) {
   }, [db, roomId]);
 
   if (loading) {
-    return <Loader2 className="w-8 h-8" />;
+    return (
+      <Card className="flex-1">
+        <Loader2 className="w-8 h-8" />;
+      </Card>
+    );
   }
-
-  console.log(participants);
 
   return (
     <Card className="flex-1">
